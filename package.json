@@ -9,9 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "react": "19.0.0-rc-02c0e824-20241028",
-    "react-dom": "19.0.0-rc-02c0e824-20241028",
-    "next": "15.0.2"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "next": "14.0.4",
+    "@prisma/client": "^5.7.0",
+    "prisma": "^5.7.0",
+    "@clerk/nextjs": "^4.27.0",
+    "@uploadthing/react": "^7.0.0",
+    "uploadthing": "^7.0.0",
+    "@tanstack/react-table": "^8.10.7",
+    "axios": "^1.6.0",
+    "sonner": "^1.2.0"
   },
   "devDependencies": {
     "typescript": "^5",
