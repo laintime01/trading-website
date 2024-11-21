@@ -75,13 +75,34 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 py-20">
         <div className="text-center mb-16 animate-fade-in">
           <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-            Professional Trade Services
+            Professional Website Templates
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Select your service to explore our professional solutions
+            Launch your trade business online in minutes. Choose your industry and get a fully customizable website with ongoing support.
           </p>
+          <div className="mt-6 flex justify-center gap-4">
+            <div className="flex items-center space-x-2 text-gray-600">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Easy Setup</span>
+            </div>
+            <div className="flex items-center space-x-2 text-gray-600">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Full Customization</span>
+            </div>
+            <div className="flex items-center space-x-2 text-gray-600">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Ongoing Support</span>
+            </div>
+          </div>
         </div>
 
+        {/* 下面是工种选择卡片部分，但标题和描述要更新 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {trades.map((trade, index) => (
             <div
@@ -100,15 +121,15 @@ export default function Home() {
                 <div className="absolute inset-0 p-6 flex flex-col justify-between text-white">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h2 className="text-2xl font-bold mb-2">{trade.title}</h2>
-                      <p className="text-sm opacity-90">{trade.description}</p>
+                      <h2 className="text-2xl font-bold mb-2">{trade.title} Template</h2>
+                      <p className="text-sm opacity-90">Perfect for {trade.title.toLowerCase()} businesses</p>
                     </div>
                     <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
                       {trade.icon}
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Explore Services</span>
+                    <span className="text-sm font-medium">Preview Template</span>
                     <svg 
                       className={`w-6 h-6 transition-transform duration-300 ${
                         hoveredTrade === trade.id ? 'translate-x-2' : ''
@@ -124,6 +145,22 @@ export default function Home() {
               </button>
             </div>
           ))}
+        </div>
+
+        {/* 添加底部服务特点说明 */}
+        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="text-center p-6 bg-white rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold mb-3">Quick Setup</h3>
+            <p className="text-gray-600">Get your professional website up and running in less than a day</p>
+          </div>
+          <div className="text-center p-6 bg-white rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold mb-3">Managed Hosting</h3>
+            <p className="text-gray-600">Worry-free hosting with automatic updates and backups</p>
+          </div>
+          <div className="text-center p-6 bg-white rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold mb-3">Expert Support</h3>
+            <p className="text-gray-600">Dedicated support team to help with customization and maintenance</p>
+          </div>
         </div>
       </div>
     </div>
