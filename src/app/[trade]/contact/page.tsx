@@ -1,7 +1,7 @@
 // src/app/[trade]/contact/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { notFound } from 'next/navigation';
 import {
   CarpenterContact,
@@ -19,12 +19,16 @@ const templates = {
 
 type TradeType = keyof typeof templates;
 
-export default function ContactPage({
-  params
-}: {
-  params: { trade: TradeType }
-}) {
+interface ContactPageProps {
+  params: Promise<{
+    trade: TradeType;
+  }>;
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
+export default function ContactPage({ params }: ContactPageProps) {
   const [mounted, setMounted] = useState(false);
+  const resolvedParams = use(params);
 
   useEffect(() => {
     setMounted(true);
@@ -32,7 +36,7 @@ export default function ContactPage({
 
   if (!mounted) return null;
 
-  const Template = templates[params.trade];
+  const Template = templates[resolvedParams.trade];
   
   if (!Template) {
     notFound();

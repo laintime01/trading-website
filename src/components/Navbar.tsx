@@ -19,8 +19,18 @@ export default function Navbar() {
   const isHome = pathname === '/';
 
   const getActiveClass = (path: string) => {
-    return pathname.includes(path) ? tradeColors[trade] || 'text-blue-600' : 'text-gray-600';
+    return pathname.includes(path) ? tradeColors[trade] || 'text-blue-600' : 'text-gray-600 hover:text-gray-800';
   };
+
+  const Logo = () => (
+    <Link 
+      href="/" 
+      className="text-xl font-bold text-gray-800 hover:text-gray-600 transition-colors flex items-center space-x-2"
+    >
+      <span className="text-blue-600">Skilled</span>
+      <span>Trades Hub</span>
+    </Link>
+  );
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-sm shadow-sm z-50">
@@ -28,30 +38,29 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           {isHome ? (
             <div className="w-full flex justify-between items-center">
-              <Link href="/" className="text-xl font-bold text-gray-800 hover:text-gray-600 transition-colors">
-                Trading Services
-              </Link>
-              <Link href="/login" className="text-gray-600 hover:text-blue-600 transition-colors">
+              <Logo />
+              <Link 
+                href="/login" 
+                className="px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors"
+              >
                 Login
               </Link>
             </div>
           ) : (
             <>
-              <Link href="/" className="text-xl font-bold text-gray-800 hover:text-gray-600 transition-colors">
-                Trading Services
-              </Link>
-              <div className="flex space-x-8">
+              <Logo />
+              <div className="flex items-center space-x-8">
                 <Link
                   href={`/${trade}`}
                   className={`hover:text-blue-600 transition-colors ${getActiveClass(trade)}`}
                 >
-                  Home
+                  Overview
                 </Link>
                 <Link
                   href={`/${trade}/works`}
                   className={`transition-colors ${getActiveClass('works')}`}
                 >
-                  Works
+                  Portfolio
                 </Link>
                 <Link
                   href={`/${trade}/contact`}
@@ -61,7 +70,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href="/login"
-                  className={`transition-colors ${getActiveClass('login')}`}
+                  className="px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors"
                 >
                   Login
                 </Link>
