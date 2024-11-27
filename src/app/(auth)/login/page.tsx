@@ -2,8 +2,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Login() {
+  const router = useRouter();
   const [credentials, setCredentials] = useState({
     username: '',
     password: ''
@@ -11,7 +13,13 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: 添加登录逻辑
+    // 如果用户名密码都为空，或者都是admin，就允许登录
+    if (
+      (credentials.username === '' && credentials.password === '') ||
+      (credentials.username === 'admin' && credentials.password === 'admin')
+    ) {
+      router.push('/admin/dashboard');
+    }
   };
 
   return (
@@ -30,7 +38,6 @@ export default function Login() {
                 id="username"
                 name="username"
                 type="text"
-                required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Username"
                 value={credentials.username}
@@ -43,7 +50,6 @@ export default function Login() {
                 id="password"
                 name="password"
                 type="password"
-                required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
                 value={credentials.password}
