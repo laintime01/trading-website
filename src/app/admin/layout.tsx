@@ -15,30 +15,25 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
-  { 
-    title: 'Dashboard', 
+  {
+    title: 'Dashboard',
     path: '/admin/dashboard',
-    icon: LayoutDashboard 
+    icon: LayoutDashboard
   },
-  { 
-    title: 'Portfolio', 
+  {
+    title: 'Portfolio',
     path: '/admin/works',
-    icon: Images 
+    icon: Images
   },
-  { 
-    title: 'Messages', 
-    path: '/admin/contact',
-    icon: MessageSquare 
+  {
+    title: 'Settings',
+    path: '/admin/settings',
+    icon: User
   },
-  { 
-    title: 'Profile', 
-    path: '/admin/profile',
-    icon: User 
-  },
-  { 
-    title: 'Users', 
+  {
+    title: 'Users',
     path: '/admin/users',
-    icon: Users 
+    icon: Users
   },
 ];
 

@@ -1,169 +1,300 @@
 // src/app/admin/users/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { User } from '@/types/user';
-import { Card } from '@/components/ui/card';
 import { UserFormModal } from './userFormModal';
+import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+
+// 模拟用户数据
+const MOCK_USERS: User[] = [
+  {
+    id: '1',
+    name: 'John Smith',
+    email: 'john.smith@example.com',
+    role: 'admin',
+    created_at: new Date('2024-01-01'),
+    updated_at: new Date('2024-01-01')
+  },
+  {
+    id: '2',
+    name: 'Alice Johnson',
+    email: 'alice.j@example.com',
+    role: 'user',
+    created_at: new Date('2024-02-15'),
+    updated_at: new Date('2024-02-15')
+  },
+  {
+    id: '3',
+    name: 'Bob Wilson',
+    email: 'bob.wilson@example.com',
+    role: 'user',
+    created_at: new Date('2024-03-01'),
+    updated_at: new Date('2024-03-01')
+  }
+];
 
 export default function UsersManagement() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // 状态管理
+  const [users, setUsers] = useState<User[]>(MOCK_USERS);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRole, setSelectedRole] = useState<'all' | 'admin' | 'user'>('all');
+  
+  // 模态框状态
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  // 过滤用户
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = 
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = selectedRole === 'all' || user.role === selectedRole;
+    return matchesSearch && matchesRole;
+  });
 
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch('/api/users');
-      const data = await response.json();
-      
-      if (data.error) {
-        setError(data.error);
-      } else {
-        setUsers(data.users);
-      }
-    } catch (error) {
-      setError('Failed to fetch users');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  const handleAddUser = async (data: Omit<User, 'id' | 'created_at' | 'updated_at'>) => {
-    try {
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+  // 分页计算
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
-      const result = await response.json();
-
-      if (result.error) {
-        setError(result.error);
-      } else {
-        setUsers([...users, result.user]);
-        setIsModalOpen(false);
-      }
-    } catch (error) {
-      setError('Failed to create user');
-    }
+  // 处理用户操作
+  const handleAddUser = (data: Omit<User, 'id' | 'created_at' | 'updated_at'>) => {
+    const newUser: User = {
+      ...data,
+      id: Math.random().toString(36).substr(2, 9),
+      created_at: new Date(),
+      updated_at: new Date()
+    };
+    setUsers([...users, newUser]);
+    setIsUserModalOpen(false);
   };
 
-  const handleEditUser = async (data: Omit<User, 'id' | 'created_at' | 'updated_at'>) => {
+  const handleEditUser = (data: Omit<User, 'id' | 'created_at' | 'updated_at'>) => {
     if (!selectedUser) return;
-
-    try {
-      const response = await fetch(`/api/users/${selectedUser.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (result.error) {
-        setError(result.error);
-      } else {
-        setUsers(users.map(user => 
-          user.id === selectedUser.id ? result.user : user
-        ));
-        setIsModalOpen(false);
-        setSelectedUser(null);
-      }
-    } catch (error) {
-      setError('Failed to update user');
-    }
+    const updatedUser: User = {
+      ...selectedUser,
+      ...data,
+      updated_at: new Date()
+    };
+    setUsers(users.map(user => user.id === selectedUser.id ? updatedUser : user));
+    setIsUserModalOpen(false);
+    setSelectedUser(null);
   };
 
-  const handleDeleteUser = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
-
-    try {
-      const response = await fetch(`/api/users/${id}`, {
-        method: 'DELETE',
-      });
-
-      const result = await response.json();
-
-      if (result.error) {
-        setError(result.error);
-      } else {
-        setUsers(users.filter(user => user.id !== id));
-      }
-    } catch (error) {
-      setError('Failed to delete user');
-    }
+  const handleDeleteUser = () => {
+    if (!selectedUser) return;
+    setUsers(users.filter(user => user.id !== selectedUser.id));
+    setSelectedUser(null);
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">User Management</h1>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-        >
-          Add New User
-        </button>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      {/* 页面标题和添加按钮 */}
+      <div className="sm:flex sm:items-center py-6">
+        <div className="sm:flex-auto">
+          <h1 className="text-2xl font-semibold text-gray-900">Users</h1>
+          <p className="mt-2 text-sm text-gray-700">
+            A list of all users in your system including their name, email, and role.
+          </p>
+        </div>
+        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedUser(null);
+              setIsUserModalOpen(true);
+            }}
+            className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto"
+          >
+            Add user
+          </button>
+        </div>
       </div>
 
-      {isLoading ? (
-        <div>Loading...</div>
-      ) : error ? (
-        <div className="text-red-600">{error}</div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {users.map((user) => (
-            <Card key={user.id} className="p-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-semibold">{user.name}</h3>
-                  <p className="text-gray-600">{user.email}</p>
-                  <span className="text-sm bg-gray-100 px-2 py-1 rounded">
-                    {user.role}
-                  </span>
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => {
-                      setSelectedUser(user);
-                      setIsModalOpen(true);
-                    }}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {/* 添加删除确认逻辑 */}}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </Card>
-          ))}
+      {/* 搜索和筛选 */}
+      <div className="mb-4 flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full border border-gray-300 rounded-md px-3 py-2"
+          />
         </div>
-      )}
-{isModalOpen && (
-        <UserFormModal
-          user={selectedUser || undefined}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedUser(null);
-          }}
-          onSubmit={selectedUser ? handleEditUser : handleAddUser}
-        />
-      )}
+        <div>
+          <select
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value as 'all' | 'admin' | 'user')}
+            className="w-full sm:w-auto border border-gray-300 rounded-md px-3 py-2"
+          >
+            <option value="all">All Roles</option>
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
+          </select>
+        </div>
+      </div>
+
+      {/* 用户表格 */}
+      <div className="mt-8 flex flex-col">
+        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+          <div className="inline-block min-w-full py-2 align-middle">
+            <div className="overflow-hidden shadow-sm ring-1 ring-black ring-opacity-5">
+              <table className="min-w-full divide-y divide-gray-300">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 lg:pl-8">
+                      Name
+                    </th>
+                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      Email
+                    </th>
+                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      Role
+                    </th>
+                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      Created
+                    </th>
+                    <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6 lg:pr-8">
+                      <span className="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {currentUsers.map((user) => (
+                    <tr key={user.id}>
+                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 lg:pl-8">
+                        {user.name}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        {user.email}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                          user.role === 'admin' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        {new Date(user.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 lg:pr-8">
+                        <button
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setIsUserModalOpen(true);
+                          }}
+                          className="text-blue-600 hover:text-blue-900 mr-4"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setIsDeleteDialogOpen(true);
+                          }}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 分页控件 */}
+      <div className="flex items-center justify-between bg-white px-4 py-3 sm:px-6 mt-4">
+        <div className="flex flex-1 justify-between sm:hidden">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+          >
+            Next
+          </button>
+        </div>
+        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm text-gray-700">
+              Showing <span className="font-medium">{indexOfFirstItem + 1}</span> to{' '}
+              <span className="font-medium">
+                {Math.min(indexOfLastItem, filteredUsers.length)}
+              </span>{' '}
+              of <span className="font-medium">{filteredUsers.length}</span> results
+            </p>
+          </div>
+          <div>
+            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:bg-gray-100"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                    page === currentPage
+                      ? 'z-10 bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                      : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:bg-gray-100"
+              >
+                Next
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
+
+      {/* 用户表单模态框 */}
+      <UserFormModal
+        user={selectedUser || undefined}
+        isOpen={isUserModalOpen}
+        onClose={() => {
+          setIsUserModalOpen(false);
+          setSelectedUser(null);
+        }}
+        onSubmit={selectedUser ? handleEditUser : handleAddUser}
+      />
+
+      {/* 删除确认对话框 */}
+      <DeleteConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => {
+          setIsDeleteDialogOpen(false);
+          setSelectedUser(null);
+        }}
+        onConfirm={handleDeleteUser}
+      />
     </div>
   );
 }
